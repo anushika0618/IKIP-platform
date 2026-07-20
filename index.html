@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IKIP — Industrial Knowledge Intelligence Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, system-ui, sans-serif); }
+  .app { display: flex; height: 100vh; min-height: 700px; background: #0a0c10; color: #e2e8f0; overflow: hidden; }
+  .sidebar { width: 220px; min-width: 220px; background: #0d1117; border-right: 1px solid #1e2530; display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid #1e2530; }
+  .logo-text { font-size: 13px; font-weight: 600; color: #60a5fa; letter-spacing: 0.5px; }
+  .logo-sub { font-size: 10px; color: #4b5563; margin-top: 2px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .nav-section { padding: 12px 8px 6px; }
+  .nav-label { font-size: 10px; color: #374151; letter-spacing: 1px; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #6b7280; transition: all 0.15s; margin-bottom: 1px; }
+  .nav-item:hover { background: #161b22; color: #cbd5e1; }
+  .nav-item.active { background: #1a2332; color: #60a5fa; }
+  .nav-item i { font-size: 15px; }
+  .nav-badge { margin-left: auto; background: #1e3a5f; color: #60a5fa; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { height: 52px; border-bottom: 1px solid #1e2530; display: flex; align-items: center; padding: 0 20px; gap: 12px; background: #0d1117; flex-shrink: 0; }
+  .page-title { font-size: 14px; font-weight: 500; color: #e2e8f0; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .search-bar { display: flex; align-items: center; gap: 8px; background: #161b22; border: 1px solid #1e2530; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #6b7280; width: 220px; cursor: text; }
+  .search-bar i { font-size: 13px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+  .status-text { font-size: 11px; color: #6b7280; }
+  .btn-icon { width: 32px; height: 32px; border-radius: 7px; border: 1px solid #1e2530; background: transparent; color: #6b7280; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+  .btn-icon:hover { background: #161b22; color: #cbd5e1; }
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Dashboard */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi-card { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 16px; }
+  .kpi-label { font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+  .kpi-value { font-size: 26px; font-weight: 600; color: #e2e8f0; }
+  .kpi-delta { font-size: 11px; margin-top: 4px; }
+  .kpi-delta.up { color: #10b981; }
+  .kpi-delta.warn { color: #f59e0b; }
+  .dash-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+  .card { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 16px; }
+  .card-title { font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title .more { font-size: 10px; color: #374151; cursor: pointer; text-transform: none; letter-spacing: 0; }
+  .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1a1f2b; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .ai-icon { background: #1a2332; color: #60a5fa; }
+  .doc-icon { background: #1a2a1a; color: #10b981; }
+  .alert-icon { background: #2a1a12; color: #f59e0b; }
+  .activity-content { flex: 1; }
+  .activity-title { font-size: 12px; color: #cbd5e1; }
+  .activity-meta { font-size: 11px; color: #4b5563; margin-top: 2px; }
+  .asset-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1a1f2b; cursor: pointer; }
+  .asset-row:last-child { border-bottom: none; }
+  .asset-row:hover .asset-name { color: #60a5fa; }
+  .asset-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .asset-name { font-size: 12px; color: #cbd5e1; flex: 1; }
+  .asset-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+  .st-ok { background: #0c2a1e; color: #10b981; }
+  .st-warn { background: #2a1e08; color: #f59e0b; }
+  .st-critical { background: #2a0c0c; color: #ef4444; }
+  .risk-bar { height: 4px; border-radius: 2px; background: #1a1f2b; overflow: hidden; margin-top: 6px; }
+  .risk-fill { height: 100%; border-radius: 2px; }
+  .category-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .cat-name { font-size: 12px; color: #cbd5e1; flex: 1; }
+  .cat-count { font-size: 11px; color: #4b5563; }
+  .cat-bar { width: 60px; height: 4px; background: #1a1f2b; border-radius: 2px; overflow: hidden; }
+  .cat-fill { height: 100%; border-radius: 2px; }
+
+  /* AI Chat */
+  .chat-layout { display: flex; gap: 16px; height: calc(100vh - 92px); }
+  .chat-main { flex: 1; display: flex; flex-direction: column; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px 0; display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 12px; }
+  .msg-user { flex-direction: row-reverse; }
+  .msg-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .av-ai { background: #1a2332; color: #60a5fa; }
+  .av-user { background: #1a2a1a; color: #10b981; }
+  .msg-bubble { max-width: 80%; }
+  .msg-user .msg-bubble { align-items: flex-end; display: flex; flex-direction: column; }
+  .bubble-text { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6; color: #cbd5e1; }
+  .msg-user .bubble-text { background: #1a2332; border-color: #2a3a52; }
+  .bubble-meta { font-size: 10px; color: #374151; margin-top: 4px; }
+  .sources-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .source-chip { background: #161b22; border: 1px solid #1e2530; border-radius: 6px; padding: 3px 9px; font-size: 10px; color: #60a5fa; cursor: pointer; transition: all 0.15s; }
+  .source-chip:hover { background: #1a2332; border-color: #3b5275; }
+  .confidence-bar { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .conf-label { font-size: 10px; color: #4b5563; }
+  .conf-track { flex: 1; max-width: 100px; height: 3px; background: #1a1f2b; border-radius: 2px; }
+  .conf-fill { height: 100%; border-radius: 2px; background: #10b981; }
+  .conf-pct { font-size: 10px; color: #10b981; }
+  .thinking { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+  .thinking-dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; animation: pulse-dot 1.2s ease-in-out infinite; }
+  .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse-dot { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+  .chat-input-row { border-top: 1px solid #1e2530; padding-top: 14px; display: flex; gap: 10px; align-items: flex-end; }
+  .chat-input { flex: 1; background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #e2e8f0; resize: none; font-family: inherit; outline: none; transition: border-color 0.15s; min-height: 44px; max-height: 120px; }
+  .chat-input:focus { border-color: #3b5275; }
+  .chat-send { width: 40px; height: 40px; background: #1e3a5f; border: 1px solid #2a4a6a; border-radius: 9px; color: #60a5fa; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.15s; font-size: 15px; }
+  .chat-send:hover { background: #2a4a6a; }
+  .chat-sidebar { width: 200px; flex-shrink: 0; }
+  .followup-list { display: flex; flex-direction: column; gap: 6px; }
+  .followup-btn { background: #0d1117; border: 1px solid #1e2530; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #6b7280; cursor: pointer; text-align: left; transition: all 0.15s; line-height: 1.4; }
+  .followup-btn:hover { background: #161b22; color: #cbd5e1; border-color: #2a3a52; }
+
+  /* Docs */
+  .doc-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid #1e2530; background: transparent; font-size: 11px; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { background: #161b22; color: #cbd5e1; }
+  .filter-btn.active { background: #1a2332; border-color: #3b5275; color: #60a5fa; }
+  .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .doc-card { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; }
+  .doc-card:hover { border-color: #2a3a52; background: #111620; transform: translateY(-1px); }
+  .doc-card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px; }
+  .icon-pdf { background: #2a0c0c; color: #ef4444; }
+  .icon-dwg { background: #0c1a2a; color: #60a5fa; }
+  .icon-xlsx { background: #0c2a0c; color: #10b981; }
+  .icon-doc { background: #1a1228; color: #a78bfa; }
+  .icon-img { background: #2a1e08; color: #f59e0b; }
+  .doc-card-name { font-size: 12px; color: #cbd5e1; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+  .doc-card-meta { font-size: 10px; color: #4b5563; margin-bottom: 8px; }
+  .doc-card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .doc-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #161b22; color: #6b7280; border: 1px solid #1e2530; }
+
+  /* Upload */
+  .upload-zone { border: 2px dashed #1e2530; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
+  .upload-zone:hover { border-color: #3b5275; background: #0d1117; }
+  .upload-zone i { font-size: 36px; color: #374151; margin-bottom: 12px; display: block; }
+  .upload-zone-title { font-size: 14px; color: #6b7280; margin-bottom: 6px; }
+  .upload-zone-sub { font-size: 12px; color: #374151; }
+  .upload-item { background: #0d1117; border: 1px solid #1e2530; border-radius: 9px; padding: 12px 14px; margin-bottom: 8px; }
+  .upload-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .upload-name { font-size: 12px; color: #cbd5e1; flex: 1; }
+  .upload-size { font-size: 11px; color: #4b5563; }
+  .upload-stage { font-size: 10px; color: #60a5fa; }
+  .progress-track { height: 4px; background: #1a1f2b; border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #2563eb; border-radius: 2px; transition: width 0.5s ease; }
+  .progress-fill.done { background: #10b981; }
+  .stages-row { display: flex; gap: 8px; margin-top: 8px; }
+  .stage-pill { font-size: 9px; padding: 2px 8px; border-radius: 10px; }
+  .st-done { background: #0c2a1e; color: #10b981; }
+  .st-active { background: #1a2332; color: #60a5fa; }
+  .st-pending { background: #161b22; color: #374151; }
+
+  /* Knowledge Graph */
+  .kg-canvas { background: #050709; border: 1px solid #1e2530; border-radius: 10px; position: relative; overflow: hidden; height: 480px; }
+  .kg-node { position: absolute; cursor: pointer; transform: translate(-50%, -50%); transition: all 0.2s; }
+  .kg-node:hover .kg-dot { transform: scale(1.3); }
+  .kg-dot { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; transition: transform 0.2s; }
+  .kg-label { font-size: 9px; color: #6b7280; text-align: center; margin-top: 4px; max-width: 60px; line-height: 1.2; }
+  .kg-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  /* Analytics */
+  .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .analytics-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .chart-area { height: 160px; position: relative; display: flex; align-items: flex-end; gap: 4px; padding: 20px 8px 24px; overflow: hidden; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar-rect { width: 100%; border-radius: 3px 3px 0 0; background: #1e3a5f; transition: all 0.3s; position: relative; }
+  .bar-rect:hover { background: #2563eb; }
+  .bar-label { font-size: 9px; color: #374151; text-align: center; }
+  .line-chart { height: 120px; position: relative; }
+  .trend-up { color: #10b981; font-size: 11px; }
+  .trend-down { color: #ef4444; font-size: 11px; }
+
+  /* Alerts */
+  .alert-item { display: flex; gap: 12px; padding: 12px 14px; background: #0d1117; border: 1px solid #1e2530; border-radius: 9px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .alert-item:hover { border-color: #2a3a52; }
+  .alert-sev { width: 3px; border-radius: 2px; flex-shrink: 0; }
+  .sev-high { background: #ef4444; }
+  .sev-med { background: #f59e0b; }
+  .sev-low { background: #10b981; }
+  .alert-body { flex: 1; }
+  .alert-title { font-size: 12px; color: #cbd5e1; font-weight: 500; }
+  .alert-desc { font-size: 11px; color: #4b5563; margin-top: 3px; line-height: 1.5; }
+  .alert-time { font-size: 10px; color: #374151; margin-top: 4px; }
+  .alert-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; align-self: flex-start; }
+  .sev-h-badge { background: #2a0c0c; color: #ef4444; }
+  .sev-m-badge { background: #2a1e08; color: #f59e0b; }
+  .sev-l-badge { background: #0c2a1e; color: #10b981; }
+
+  /* Business Impact */
+  .impact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+  .impact-card { background: #0d1117; border: 1px solid #1e2530; border-radius: 12px; padding: 20px; text-align: center; position: relative; overflow: hidden; }
+  .impact-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .impact-card.blue::before { background: #2563eb; }
+  .impact-card.green::before { background: #10b981; }
+  .impact-card.amber::before { background: #f59e0b; }
+  .impact-card.purple::before { background: #7c3aed; }
+  .impact-pct { font-size: 42px; font-weight: 700; }
+  .impact-pct.blue { color: #60a5fa; }
+  .impact-pct.green { color: #34d399; }
+  .impact-pct.amber { color: #fbbf24; }
+  .impact-pct.purple { color: #a78bfa; }
+  .impact-label { font-size: 12px; color: #6b7280; margin-top: 6px; line-height: 1.5; }
+  .impact-sub { font-size: 10px; color: #374151; margin-top: 4px; }
+  .roi-banner { background: linear-gradient(135deg, #0a1628 0%, #0d1f3a 100%); border: 1px solid #1e3a5f; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 16px; }
+  .roi-value { font-size: 52px; font-weight: 700; color: #60a5fa; }
+  .roi-label { font-size: 13px; color: #6b7280; margin-top: 8px; }
+  .roi-detail { font-size: 11px; color: #374151; margin-top: 6px; }
+  .adoption-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .adopt-card { background: #0d1117; border: 1px solid #1e2530; border-radius: 9px; padding: 14px; text-align: center; }
+  .adopt-value { font-size: 22px; font-weight: 600; color: #e2e8f0; }
+  .adopt-label { font-size: 10px; color: #4b5563; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .coverage-section { margin-top: 16px; }
+  .coverage-bar-track { height: 8px; background: #1a1f2b; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .coverage-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1d4ed8 0%, #10b981 100%); }
+
+  /* Viewer */
+  .viewer-layout { display: flex; gap: 16px; height: calc(100vh - 92px); }
+  .viewer-panel { flex: 1; background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+  .viewer-toolbar { height: 44px; border-bottom: 1px solid #1e2530; display: flex; align-items: center; gap: 10px; padding: 0 14px; }
+  .viewer-toolbar span { font-size: 11px; color: #6b7280; }
+  .viewer-body { flex: 1; overflow-y: auto; padding: 24px; }
+  .doc-header { font-size: 16px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+  .doc-subheader { font-size: 12px; color: #4b5563; margin-bottom: 20px; }
+  .doc-section { margin-bottom: 18px; }
+  .doc-section-title { font-size: 12px; font-weight: 600; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #1a1f2b; }
+  .doc-text { font-size: 12px; color: #94a3b8; line-height: 1.8; }
+  .doc-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .doc-table th { font-size: 10px; color: #4b5563; text-align: left; padding: 6px 10px; background: #161b22; border-bottom: 1px solid #1e2530; }
+  .doc-table td { font-size: 11px; color: #94a3b8; padding: 7px 10px; border-bottom: 1px solid #1a1f2b; }
+  .viewer-meta { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+  .meta-section { background: #0d1117; border: 1px solid #1e2530; border-radius: 9px; padding: 14px; }
+  .meta-title { font-size: 10px; color: #374151; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .meta-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #1a1f2b; }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-key { font-size: 11px; color: #4b5563; }
+  .meta-val { font-size: 11px; color: #cbd5e1; text-align: right; }
+
+  /* Assets */
+  .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .asset-card { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; }
+  .asset-card:hover { border-color: #2a3a52; transform: translateY(-1px); }
+  .asset-card-icon { font-size: 24px; margin-bottom: 10px; }
+  .asset-card-id { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+  .asset-card-name { font-size: 11px; color: #6b7280; margin-bottom: 10px; }
+  .asset-card-stats { display: flex; gap: 8px; }
+  .ast-stat { font-size: 10px; background: #161b22; padding: 2px 7px; border-radius: 5px; }
+  .ast-stat.ok { color: #10b981; }
+  .ast-stat.warn { color: #f59e0b; }
+  .ast-stat.bad { color: #ef4444; }
+
+  /* Settings */
+  .settings-layout { display: grid; grid-template-columns: 180px 1fr; gap: 20px; }
+  .settings-nav { display: flex; flex-direction: column; gap: 2px; }
+  .snav-item { padding: 7px 10px; border-radius: 6px; font-size: 12px; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+  .snav-item:hover { background: #161b22; color: #cbd5e1; }
+  .snav-item.active { background: #1a2332; color: #60a5fa; }
+  .settings-section { background: #0d1117; border: 1px solid #1e2530; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .settings-title { font-size: 13px; font-weight: 500; color: #e2e8f0; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #1e2530; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1f2b; }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-info { flex: 1; }
+  .setting-name { font-size: 12px; color: #cbd5e1; }
+  .setting-desc { font-size: 11px; color: #4b5563; margin-top: 2px; }
+  .toggle { width: 38px; height: 20px; background: #10b981; border-radius: 10px; position: relative; cursor: pointer; flex-shrink: 0; }
+  .toggle.off { background: #1e2530; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: white; transition: transform 0.2s; }
+  .toggle.off::after { transform: translateX(0); }
+  .toggle:not(.off)::after { transform: translateX(18px); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e2530; border-radius: 2px; }
+
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+  .section-sub { font-size: 12px; color: #4b5563; }
+  .btn-primary { background: #1e3a5f; border: 1px solid #2a4a6a; color: #60a5fa; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  .btn-primary:hover { background: #2a4a6a; }
+  .breadcrumb { font-size: 11px; color: #374151; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .breadcrumb span { color: #60a5fa; cursor: pointer; }
+  .breadcrumb span:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">⬡ IKIP</div>
+      <div class="logo-sub">Knowledge Platform</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="nav('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item" onclick="nav('chat')"><i class="ti ti-brain"></i> AI Assistant <span class="nav-badge">AI</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Knowledge</div>
+      <div class="nav-item" onclick="nav('docs')"><i class="ti ti-files"></i> Document Library</div>
+      <div class="nav-item" onclick="nav('viewer')"><i class="ti ti-file-text"></i> Document Viewer</div>
+      <div class="nav-item" onclick="nav('upload')"><i class="ti ti-cloud-upload"></i> Upload Center</div>
+      <div class="nav-item" onclick="nav('graph')"><i class="ti ti-hierarchy"></i> Knowledge Graph</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Operations</div>
+      <div class="nav-item" onclick="nav('assets')"><i class="ti ti-settings-2"></i> Asset Explorer</div>
+      <div class="nav-item" onclick="nav('analytics')"><i class="ti ti-chart-bar"></i> Analytics</div>
+      <div class="nav-item" onclick="nav('alerts')"><i class="ti ti-bell"></i> Alerts <span class="nav-badge" style="background:#2a0c0c;color:#ef4444">7</span></div>
+    </div>
+    <div class="nav-section" style="margin-top:auto">
+      <div class="nav-item" onclick="nav('impact')"><i class="ti ti-rocket"></i> Business Impact</div>
+      <div class="nav-item" onclick="nav('settings')"><i class="ti ti-adjustments"></i> Settings</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="search-bar"><i class="ti ti-search"></i> Search documents, assets, procedures...</div>
+      <div class="topbar-right">
+        <div style="display:flex;align-items:center;gap:6px"><div class="status-dot"></div><span class="status-text">150 docs indexed</span></div>
+        <button class="btn-icon" title="Notifications"><i class="ti ti-bell"></i></button>
+        <button class="btn-icon" title="Help"><i class="ti ti-help"></i></button>
+        <div style="width:28px;height:28px;border-radius:50%;background:#1a2332;display:flex;align-items:center;justify-content:center;font-size:11px;color:#60a5fa;font-weight:600;cursor:pointer">EK</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Documents</div>
+            <div class="kpi-value">150</div>
+            <div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i> +12 this week</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Assets Tracked</div>
+            <div class="kpi-value">50</div>
+            <div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i> +3 new assets</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AI Queries Today</div>
+            <div class="kpi-value">247</div>
+            <div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i> +34% vs yesterday</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Open Alerts</div>
+            <div class="kpi-value" style="color:#f59e0b">7</div>
+            <div class="kpi-delta warn"><i class="ti ti-alert-triangle" style="font-size:10px"></i> 2 critical</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Recent Activity <span class="more">View all →</span></div>
+              <div class="activity-item">
+                <div class="activity-icon ai-icon"><i class="ti ti-brain"></i></div>
+                <div class="activity-content">
+                  <div class="activity-title">AI answered: "What caused Compressor C-7 failures?"</div>
+                  <div class="activity-meta">Cited 4 documents · 96% confidence · 2 min ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon doc-icon"><i class="ti ti-file-upload"></i></div>
+                <div class="activity-content">
+                  <div class="activity-title">Boiler B-4 Annual Inspection Report 2024 uploaded</div>
+                  <div class="activity-meta">Processed and indexed · OCR complete · 18 min ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon alert-icon"><i class="ti ti-alert-triangle"></i></div>
+                <div class="activity-content">
+                  <div class="activity-title">Overdue maintenance alert — Pump P-101</div>
+                  <div class="activity-meta">Last service: 147 days ago · Interval: 90 days · 1 hr ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon ai-icon"><i class="ti ti-brain"></i></div>
+                <div class="activity-content">
+                  <div class="activity-title">AI answered: "Show confined space entry procedures"</div>
+                  <div class="activity-meta">Cited SOP-CS-2024-v3 · 99% confidence · 3 hr ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon doc-icon"><i class="ti ti-file-upload"></i></div>
+                <div class="activity-content">
+                  <div class="activity-title">Valve V-22 Engineering Drawing Rev.4 uploaded</div>
+                  <div class="activity-meta">CAD vectorized · Linked to 6 documents · 4 hr ago</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Document Categories</div>
+              <div class="category-item"><div class="cat-name">Maintenance Logs</div><div class="cat-bar"><div class="cat-fill" style="width:80%;background:#2563eb"></div></div><div class="cat-count">38</div></div>
+              <div class="category-item"><div class="cat-name">Safety SOPs</div><div class="cat-bar"><div class="cat-fill" style="width:60%;background:#10b981"></div></div><div class="cat-count">24</div></div>
+              <div class="category-item"><div class="cat-name">Inspection Reports</div><div class="cat-bar"><div class="cat-fill" style="width:55%;background:#7c3aed"></div></div><div class="cat-count">32</div></div>
+              <div class="category-item"><div class="cat-name">Engineering Drawings</div><div class="cat-bar"><div class="cat-fill" style="width:45%;background:#f59e0b"></div></div><div class="cat-count">21</div></div>
+              <div class="category-item"><div class="cat-name">Equipment Manuals</div><div class="cat-bar"><div class="cat-fill" style="width:35%;background:#ef4444"></div></div><div class="cat-count">18</div></div>
+              <div class="category-item"><div class="cat-name">Project Documents</div><div class="cat-bar"><div class="cat-fill" style="width:25%;background:#60a5fa"></div></div><div class="cat-count">17</div></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Asset Health Status</div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Pump P-101</div><div class="asset-status st-warn">Overdue</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Compressor C-7</div><div class="asset-status st-critical">Alert</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Boiler B-4</div><div class="asset-status st-ok">Operational</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Valve V-22</div><div class="asset-status st-ok">Operational</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Heat Exchanger HE-3</div><div class="asset-status st-warn">Review Due</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Turbine T-1</div><div class="asset-status st-ok">Operational</div></div>
+              <div class="asset-row" onclick="nav('assets')"><div class="asset-dot" style="background:#10b981"></div><div class="asset-name">Reactor R-2</div><div class="asset-status st-ok">Operational</div></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Knowledge Coverage</div>
+              <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px"><span style="color:#6b7280">Overall Coverage</span><span style="color:#10b981;font-weight:600">87%</span></div>
+                <div class="risk-bar"><div class="risk-fill" style="width:87%;background:#10b981"></div></div>
+              </div>
+              <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px"><span style="color:#6b7280">Safety Procedures</span><span style="color:#10b981;font-weight:600">96%</span></div>
+                <div class="risk-bar"><div class="risk-fill" style="width:96%;background:#10b981"></div></div>
+              </div>
+              <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px"><span style="color:#6b7280">Equipment Manuals</span><span style="color:#f59e0b;font-weight:600">72%</span></div>
+                <div class="risk-bar"><div class="risk-fill" style="width:72%;background:#f59e0b"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px"><span style="color:#6b7280">Maintenance History</span><span style="color:#10b981;font-weight:600">91%</span></div>
+                <div class="risk-bar"><div class="risk-fill" style="width:91%;background:#10b981"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI CHAT -->
+      <div class="page" id="page-chat">
+        <div class="section-header">
+          <div><div class="section-title">AI Knowledge Assistant</div><div class="section-sub">Ask anything about your industrial equipment, procedures, or history</div></div>
+          <button class="btn-primary" onclick="clearChat()"><i class="ti ti-refresh"></i> New conversation</button>
+        </div>
+        <div class="chat-layout">
+          <div class="chat-main">
+            <div class="chat-messages" id="chat-messages">
+              <div class="msg">
+                <div class="msg-avatar av-ai">AI</div>
+                <div class="msg-bubble">
+                  <div class="bubble-text">Hello! I'm your Industrial Knowledge Assistant. I have access to all 150 indexed documents — maintenance logs, safety SOPs, inspection reports, engineering drawings, and equipment manuals.<br><br>Ask me anything about your equipment, procedures, or historical data. For example:<br><br>• "Show maintenance history of Pump P-101"<br>• "Find the latest confined space SOP"<br>• "What caused Compressor C-7 failures?"</div>
+                  <div class="bubble-meta">IKIP AI · Knowledge base: 150 docs</div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-row">
+              <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask about equipment, procedures, maintenance history..." onkeydown="handleKey(event)"></textarea>
+              <div class="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></div>
+            </div>
+          </div>
+          <div class="chat-sidebar">
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-title">Suggested questions</div>
+              <div class="followup-list" id="followup-list">
+                <div class="followup-btn" onclick="askQuestion('Show maintenance history of Pump P-101')">Show maintenance history of Pump P-101</div>
+                <div class="followup-btn" onclick="askQuestion('Find the latest confined space SOP')">Find the latest confined space SOP</div>
+                <div class="followup-btn" onclick="askQuestion('What caused Compressor C-7 failures?')">What caused Compressor C-7 failures?</div>
+                <div class="followup-btn" onclick="askQuestion('Summarize Boiler B-4 inspection reports')">Summarize Boiler B-4 inspection reports</div>
+                <div class="followup-btn" onclick="askQuestion('Show all documents related to Valve V-22')">Show all documents related to Valve V-22</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Recent searches</div>
+              <div style="font-size:11px;color:#4b5563;line-height:2">
+                <div style="cursor:pointer;hover:color:#60a5fa" onclick="askQuestion('Pump P-101 seal failure 2023')">Pump P-101 seal failure 2023</div>
+                <div>Confined space entry SOP</div>
+                <div>Boiler water treatment procedure</div>
+                <div>Compressor C-7 vibration logs</div>
+                <div>Heat exchanger cleaning schedule</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="page" id="page-docs">
+        <div class="section-header">
+          <div><div class="section-title">Document Library</div><div class="section-sub">150 documents indexed · Last updated 18 min ago</div></div>
+          <button class="btn-primary" onclick="nav('upload')"><i class="ti ti-upload"></i> Upload Documents</button>
+        </div>
+        <div class="doc-filters">
+          <button class="filter-btn active">All (150)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'maint')">Maintenance (38)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'sop')">Safety SOPs (24)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'inspect')">Inspections (32)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'dwg')">Drawings (21)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'manual')">Manuals (18)</button>
+          <button class="filter-btn" onclick="filterDocs(this,'proj')">Project (17)</button>
+        </div>
+        <div class="doc-grid" id="doc-grid">
+          <!-- generated by JS -->
+        </div>
+      </div>
+
+      <!-- VIEWER -->
+      <div class="page" id="page-viewer">
+        <div class="breadcrumb"><span onclick="nav('docs')">Document Library</span> <i class="ti ti-chevron-right" style="font-size:10px;color:#374151"></i> <span>Pump P-101 Maintenance Log 2024</span></div>
+        <div class="viewer-layout">
+          <div class="viewer-panel">
+            <div class="viewer-toolbar">
+              <button class="btn-icon"><i class="ti ti-arrow-left"></i></button>
+              <button class="btn-icon"><i class="ti ti-arrow-right"></i></button>
+              <span style="flex:1;color:#6b7280">MAINT-P101-2024-Q3.pdf</span>
+              <button class="btn-icon"><i class="ti ti-search"></i></button>
+              <button class="btn-icon"><i class="ti ti-download"></i></button>
+              <button class="btn-icon"><i class="ti ti-share"></i></button>
+            </div>
+            <div class="viewer-body">
+              <div class="doc-header">Pump P-101 — Q3 2024 Maintenance Log</div>
+              <div class="doc-subheader">Facility: Plant Unit 3 · Technician: J. Martinez · Rev. 2 · Document ID: MAINT-P101-2024-Q3</div>
+              <div class="doc-section">
+                <div class="doc-section-title">1. Equipment Overview</div>
+                <div class="doc-text">Centrifugal pump P-101 is a horizontal split-case unit rated at 450 GPM at 185 ft TDH. The pump serves as the primary cooling water circulator for the Unit 3 heat exchanger train. Motor rated 75 HP, 460V/3-phase, 1780 RPM nominal. Installed 2018, last major overhaul March 2022.</div>
+              </div>
+              <div class="doc-section">
+                <div class="doc-section-title">2. Inspection Findings</div>
+                <div class="doc-text">Q3 2024 inspection (07/15/2024): Vibration reading elevated at 0.42 in/s RMS (baseline 0.18 in/s). Mechanical seal showing slight weepage (approx. 5 drops/minute). Bearing temperatures normal. Impeller wear within acceptable limits. Recommended: seal replacement within 30 days.</div>
+              </div>
+              <div class="doc-section">
+                <div class="doc-section-title">3. Maintenance History</div>
+                <table class="doc-table">
+                  <tr><th>Date</th><th>Type</th><th>Technician</th><th>Finding</th><th>Status</th></tr>
+                  <tr><td>07/15/2024</td><td>Preventive</td><td>J. Martinez</td><td>Seal weepage detected</td><td style="color:#f59e0b">Action Required</td></tr>
+                  <tr><td>04/08/2024</td><td>Preventive</td><td>S. Kumar</td><td>Normal — greased bearings</td><td style="color:#10b981">Complete</td></tr>
+                  <tr><td>01/12/2024</td><td>Preventive</td><td>J. Martinez</td><td>Impeller inspect — OK</td><td style="color:#10b981">Complete</td></tr>
+                  <tr><td>10/05/2023</td><td>Corrective</td><td>T. Walsh</td><td>Bearing replacement R-side</td><td style="color:#10b981">Complete</td></tr>
+                  <tr><td>07/18/2023</td><td>Preventive</td><td>S. Kumar</td><td>Normal quarterly PM</td><td style="color:#10b981">Complete</td></tr>
+                </table>
+              </div>
+              <div class="doc-section">
+                <div class="doc-section-title">4. Recommendations</div>
+                <div class="doc-text">1. Schedule mechanical seal replacement (P/N: CRANE-2100-316SS) within 30 days per SOP-MAINT-SEAL-007. 2. Increase vibration monitoring frequency to weekly until seal replaced. 3. Review root cause — possible misalignment or cavitation per historical pattern (see MAINT-P101-2022-FAIL).</div>
+              </div>
+            </div>
+          </div>
+          <div class="viewer-meta">
+            <div class="meta-section">
+              <div class="meta-title">Document Info</div>
+              <div class="meta-row"><span class="meta-key">Asset</span><span class="meta-val">Pump P-101</span></div>
+              <div class="meta-row"><span class="meta-key">Type</span><span class="meta-val">Maintenance Log</span></div>
+              <div class="meta-row"><span class="meta-key">Version</span><span class="meta-val">Rev. 2</span></div>
+              <div class="meta-row"><span class="meta-key">Created</span><span class="meta-val">Jul 16, 2024</span></div>
+              <div class="meta-row"><span class="meta-key">Author</span><span class="meta-val">J. Martinez</span></div>
+              <div class="meta-row"><span class="meta-key">Dept.</span><span class="meta-val">Mechanical</span></div>
+              <div class="meta-row"><span class="meta-key">Pages</span><span class="meta-val">8</span></div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-title">AI Summary</div>
+              <div style="font-size:11px;color:#94a3b8;line-height:1.7">P-101 showing elevated vibration and seal weepage. Seal replacement required within 30 days. Historical pattern suggests possible alignment issue.</div>
+              <div style="margin-top:8px;font-size:10px;color:#374151">AI confidence: 94%</div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-title">Related Documents</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div class="source-chip" onclick="void(0)">SOP-MAINT-SEAL-007</div>
+                <div class="source-chip" onclick="void(0)">P-101 Engineering Drawing</div>
+                <div class="source-chip" onclick="void(0)">MAINT-P101-2022-FAIL</div>
+                <div class="source-chip" onclick="void(0)">P-101 Parts Manual</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="page" id="page-upload">
+        <div class="section-header">
+          <div><div class="section-title">Upload Center</div><div class="section-sub">Upload industrial documents for AI processing and indexing</div></div>
+        </div>
+        <div class="upload-zone" onclick="simulateUpload()">
+          <i class="ti ti-cloud-upload"></i>
+          <div class="upload-zone-title">Drop files here or click to browse</div>
+          <div class="upload-zone-sub">PDF, DWG, DOCX, XLSX, PNG, JPG — Max 50MB per file</div>
+        </div>
+        <div id="upload-list">
+          <div class="upload-item">
+            <div class="upload-header">
+              <div class="upload-name">Compressor_C7_Failure_Analysis_2024.pdf</div>
+              <div class="upload-size">2.4 MB</div>
+              <div class="upload-stage" style="color:#10b981">✓ Indexed</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill done" style="width:100%"></div></div>
+            <div class="stages-row">
+              <span class="stage-pill st-done">Upload</span>
+              <span class="stage-pill st-done">OCR Scan</span>
+              <span class="stage-pill st-done">Embedding</span>
+              <span class="stage-pill st-done">Indexing</span>
+              <span class="stage-pill st-done">Graph Link</span>
+            </div>
+          </div>
+          <div class="upload-item">
+            <div class="upload-header">
+              <div class="upload-name">Boiler_B4_Inspection_Q2_2024.pdf</div>
+              <div class="upload-size">1.8 MB</div>
+              <div class="upload-stage" style="color:#10b981">✓ Indexed</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill done" style="width:100%"></div></div>
+            <div class="stages-row">
+              <span class="stage-pill st-done">Upload</span>
+              <span class="stage-pill st-done">OCR Scan</span>
+              <span class="stage-pill st-done">Embedding</span>
+              <span class="stage-pill st-done">Indexing</span>
+              <span class="stage-pill st-done">Graph Link</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KNOWLEDGE GRAPH -->
+      <div class="page" id="page-graph">
+        <div class="section-header">
+          <div><div class="section-title">Knowledge Graph</div><div class="section-sub">Semantic relationships between assets, documents, and procedures</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Assets</button>
+            <button class="filter-btn">Documents</button>
+            <button class="filter-btn">Procedures</button>
+          </div>
+        </div>
+        <div class="kg-canvas" id="kg-canvas">
+          <svg class="kg-svg" id="kg-svg"></svg>
+          <!-- Nodes rendered by JS -->
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px">
+          <div class="kpi-card"><div class="kpi-label">Nodes</div><div class="kpi-value" style="font-size:22px">284</div></div>
+          <div class="kpi-card"><div class="kpi-label">Relationships</div><div class="kpi-value" style="font-size:22px">1,247</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg. Connections</div><div class="kpi-value" style="font-size:22px">4.4</div></div>
+          <div class="kpi-card"><div class="kpi-label">Clusters</div><div class="kpi-value" style="font-size:22px">12</div></div>
+        </div>
+      </div>
+
+      <!-- ASSETS -->
+      <div class="page" id="page-assets">
+        <div class="section-header">
+          <div><div class="section-title">Asset Explorer</div><div class="section-sub">50 assets tracked across 3 plant units</div></div>
+          <button class="btn-primary"><i class="ti ti-plus"></i> Add Asset</button>
+        </div>
+        <div class="doc-filters">
+          <button class="filter-btn active">All (50)</button>
+          <button class="filter-btn">Pumps (12)</button>
+          <button class="filter-btn">Compressors (8)</button>
+          <button class="filter-btn">Boilers (5)</button>
+          <button class="filter-btn">Heat Exchangers (7)</button>
+          <button class="filter-btn">Valves (18)</button>
+        </div>
+        <div class="asset-grid" id="asset-grid"><!-- rendered by JS --></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page" id="page-analytics">
+        <div class="section-header">
+          <div><div class="section-title">Analytics</div><div class="section-sub">Platform usage and knowledge insights · Last 30 days</div></div>
+        </div>
+        <div class="analytics-grid-3">
+          <div class="kpi-card"><div class="kpi-label">AI Queries</div><div class="kpi-value">4,821</div><div class="kpi-delta up">↑ 34% month-over-month</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg. Response Time</div><div class="kpi-value">1.4s</div><div class="kpi-delta up">↓ 0.3s improvement</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg. Confidence</div><div class="kpi-value">91%</div><div class="kpi-delta up">↑ 3% from training</div></div>
+        </div>
+        <div class="analytics-grid">
+          <div class="card">
+            <div class="card-title">AI Queries by Day (Last 14 days)</div>
+            <div class="chart-area" id="query-chart"><!-- bars by JS --></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Searched Assets</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Compressor C-7</span><span style="color:#6b7280">342 queries</span></div><div class="risk-bar"><div class="risk-fill" style="width:90%;background:#2563eb"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Pump P-101</span><span style="color:#6b7280">287 queries</span></div><div class="risk-bar"><div class="risk-fill" style="width:75%;background:#2563eb"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Boiler B-4</span><span style="color:#6b7280">198 queries</span></div><div class="risk-bar"><div class="risk-fill" style="width:52%;background:#7c3aed"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Valve V-22</span><span style="color:#6b7280">156 queries</span></div><div class="risk-bar"><div class="risk-fill" style="width:41%;background:#10b981"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Heat Exchanger HE-3</span><span style="color:#6b7280">134 queries</span></div><div class="risk-bar"><div class="risk-fill" style="width:35%;background:#f59e0b"></div></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Document Uploads Trend</div>
+            <div class="chart-area" id="upload-chart"><!-- bars by JS --></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Department Activity</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Mechanical Engineering</span><span style="color:#10b981">+42%</span></div><div class="risk-bar"><div class="risk-fill" style="width:85%;background:#10b981"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Operations</span><span style="color:#10b981">+28%</span></div><div class="risk-bar"><div class="risk-fill" style="width:70%;background:#2563eb"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Safety & Compliance</span><span style="color:#10b981">+19%</span></div><div class="risk-bar"><div class="risk-fill" style="width:55%;background:#7c3aed"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Maintenance</span><span style="color:#10b981">+35%</span></div><div class="risk-bar"><div class="risk-fill" style="width:65%;background:#f59e0b"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="page" id="page-alerts">
+        <div class="section-header">
+          <div><div class="section-title">Alerts</div><div class="section-sub">7 active alerts · 2 critical</div></div>
+          <button class="btn-primary"><i class="ti ti-filter"></i> Filter</button>
+        </div>
+        <div class="alert-item"><div class="alert-sev sev-high"></div><div class="alert-body"><div class="alert-title">Compressor C-7 — Vibration Exceeds Safety Threshold</div><div class="alert-desc">Vibration reading of 0.78 in/s RMS exceeds max threshold of 0.60 in/s. Immediate inspection required per SOP-VIB-CRITICAL-001. Risk of bearing failure and unplanned shutdown.</div><div class="alert-time">2 hours ago · Plant Unit 2</div></div><span class="alert-badge sev-h-badge">Critical</span></div>
+        <div class="alert-item"><div class="alert-sev sev-high"></div><div class="alert-body"><div class="alert-title">Pump P-101 — Maintenance Overdue by 57 Days</div><div class="alert-desc">Scheduled 90-day PM interval exceeded. Seal weepage noted in last inspection. Risk of unplanned failure and process interruption. Escalated to maintenance supervisor.</div><div class="alert-time">1 day ago · Plant Unit 3</div></div><span class="alert-badge sev-h-badge">Critical</span></div>
+        <div class="alert-item"><div class="alert-sev sev-med"></div><div class="alert-body"><div class="alert-title">Boiler B-4 — Water Treatment Log Overdue</div><div class="alert-desc">Monthly water treatment log not submitted for July 2024. Required for regulatory compliance reporting. Contact: Water Treatment Team.</div><div class="alert-time">3 days ago · Boiler House</div></div><span class="alert-badge sev-m-badge">Medium</span></div>
+        <div class="alert-item"><div class="alert-sev sev-med"></div><div class="alert-body"><div class="alert-title">Safety SOP — Confined Space Entry Procedure Expiring</div><div class="alert-desc">SOP-CS-2022-v2 expires in 14 days. New revision SOP-CS-2024-v3 awaiting final approval. Ensure approval before expiry to maintain compliance.</div><div class="alert-time">5 days ago · Safety Dept.</div></div><span class="alert-badge sev-m-badge">Medium</span></div>
+        <div class="alert-item"><div class="alert-sev sev-med"></div><div class="alert-body"><div class="alert-title">Heat Exchanger HE-3 — Fouling Inspection Due</div><div class="alert-desc">Annual fouling inspection scheduled for August 2024 not yet completed. Reduced thermal efficiency detected — 8% below design rating per operating data.</div><div class="alert-time">1 week ago · Plant Unit 1</div></div><span class="alert-badge sev-m-badge">Medium</span></div>
+        <div class="alert-item"><div class="alert-sev sev-low"></div><div class="alert-body"><div class="alert-title">15 Documents Pending Review</div><div class="alert-desc">Newly uploaded documents awaiting engineer review and approval before becoming searchable in the knowledge base. Oldest document pending: 8 days.</div><div class="alert-time">8 days ago · Document Control</div></div><span class="alert-badge sev-l-badge">Low</span></div>
+        <div class="alert-item"><div class="alert-sev sev-low"></div><div class="alert-body"><div class="alert-title">Turbine T-1 — Lubricant Analysis Scheduled</div><div class="alert-desc">Quarterly oil sample due this week. Schedule with Reliability Engineering. Last sample (April 2024): all parameters within spec.</div><div class="alert-time">2 weeks ago · Turbine Bay</div></div><span class="alert-badge sev-l-badge">Low</span></div>
+      </div>
+
+      <!-- BUSINESS IMPACT -->
+      <div class="page" id="page-impact">
+        <div class="section-header">
+          <div><div class="section-title" style="font-size:20px">Business Impact Dashboard</div><div class="section-sub">Measured outcomes since IKIP deployment · Q3 2024</div></div>
+        </div>
+        <div class="roi-banner">
+          <div style="font-size:11px;color:#374151;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Projected Annual ROI</div>
+          <div class="roi-value">$2.4M</div>
+          <div class="roi-label">Based on reduced downtime, faster decisions, and engineering time savings</div>
+          <div class="roi-detail">Calculated across 3 plant units · 180 active users · 50 tracked assets</div>
+        </div>
+        <div class="impact-grid">
+          <div class="impact-card blue">
+            <div class="impact-pct blue">70%</div>
+            <div class="impact-label">Reduction in document search time</div>
+            <div class="impact-sub">From avg. 47 min → 14 min per query</div>
+          </div>
+          <div class="impact-card green">
+            <div class="impact-pct green">50%</div>
+            <div class="impact-label">Faster maintenance decisions</div>
+            <div class="impact-sub">Historical context instantly available</div>
+          </div>
+          <div class="impact-card amber">
+            <div class="impact-pct amber">35%</div>
+            <div class="impact-label">Fewer repeated equipment failures</div>
+            <div class="impact-sub">AI surface patterns engineers missed</div>
+          </div>
+          <div class="impact-card purple">
+            <div class="impact-pct purple">40%</div>
+            <div class="impact-label">Faster engineer onboarding</div>
+            <div class="impact-sub">New hires productive in 2 weeks vs 5</div>
+          </div>
+        </div>
+        <div class="adoption-row">
+          <div class="adopt-card"><div class="adopt-value" style="color:#60a5fa">87%</div><div class="adopt-label">Knowledge Coverage</div></div>
+          <div class="adopt-card"><div class="adopt-value" style="color:#10b981">94%</div><div class="adopt-label">AI Accuracy</div></div>
+          <div class="adopt-card"><div class="adopt-value" style="color:#f59e0b">180</div><div class="adopt-label">Active Users</div></div>
+          <div class="adopt-card"><div class="adopt-value" style="color:#a78bfa">4.8k</div><div class="adopt-label">Monthly Queries</div></div>
+        </div>
+        <div class="coverage-section">
+          <div class="card">
+            <div class="card-title">Coverage by Knowledge Domain</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Safety Procedures</span><span style="color:#10b981">96%</span></div><div class="coverage-bar-track"><div class="coverage-fill" style="width:96%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Maintenance History</span><span style="color:#10b981">91%</span></div><div class="coverage-bar-track"><div class="coverage-fill" style="width:91%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Inspection Reports</span><span style="color:#10b981">88%</span></div><div class="coverage-bar-track"><div class="coverage-fill" style="width:88%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Equipment Manuals</span><span style="color:#f59e0b">72%</span></div><div class="coverage-bar-track"><div class="coverage-fill" style="width:72%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:#cbd5e1">Engineering Drawings</span><span style="color:#f59e0b">68%</span></div><div class="coverage-bar-track"><div class="coverage-fill" style="width:68%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="section-header">
+          <div><div class="section-title">Settings</div><div class="section-sub">Platform configuration and preferences</div></div>
+        </div>
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <div class="snav-item active">AI Configuration</div>
+            <div class="snav-item">Document Processing</div>
+            <div class="snav-item">Integrations</div>
+            <div class="snav-item">Notifications</div>
+            <div class="snav-item">Users & Permissions</div>
+            <div class="snav-item">Data Retention</div>
+          </div>
+          <div>
+            <div class="settings-section">
+              <div class="settings-title">AI Configuration</div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Semantic search</div><div class="setting-desc">Use embedding-based similarity search across all documents</div></div><div class="toggle"></div></div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Auto-summarize on upload</div><div class="setting-desc">Generate AI summary for each document during ingestion</div></div><div class="toggle"></div></div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Show confidence scores</div><div class="setting-desc">Display AI confidence percentage on all query responses</div></div><div class="toggle"></div></div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Follow-up suggestions</div><div class="setting-desc">Show related questions after each AI response</div></div><div class="toggle"></div></div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-title">Document Processing</div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">OCR for scanned PDFs</div><div class="setting-desc">Automatically run OCR on image-based documents</div></div><div class="toggle"></div></div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Auto-link related documents</div><div class="setting-desc">Build relationships between documents sharing common assets</div></div><div class="toggle"></div></div>
+              <div class="setting-row"><div class="setting-info"><div class="setting-name">Version tracking</div><div class="setting-desc">Track document revisions and maintain history</div></div><div class="toggle"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const pages = {
+  'dashboard': 'Dashboard',
+  'chat': 'AI Knowledge Assistant',
+  'docs': 'Document Library',
+  'viewer': 'Document Viewer',
+  'upload': 'Upload Center',
+  'graph': 'Knowledge Graph',
+  'assets': 'Asset Explorer',
+  'analytics': 'Analytics',
+  'alerts': 'Alerts',
+  'impact': 'Business Impact',
+  'settings': 'Settings'
+};
+
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('page-title').textContent = pages[page] || page;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.onclick && n.onclick.toString().includes("'" + page + "'")) n.classList.add('active');
+  });
+  if(page === 'graph') renderGraph();
+  if(page === 'analytics') renderCharts();
+  if(page === 'docs') renderDocs();
+  if(page === 'assets') renderAssets();
+}
+
+const docData = [
+  {name:'Pump P-101 Maintenance Log Q3 2024', type:'pdf', icon:'icon-pdf', cat:'maint', tags:['P-101','Mechanical','2024']},
+  {name:'Compressor C-7 Failure Analysis', type:'pdf', icon:'icon-pdf', cat:'maint', tags:['C-7','Failure','2024']},
+  {name:'Confined Space Entry SOP v3', type:'doc', icon:'icon-doc', cat:'sop', tags:['Safety','Confined Space']},
+  {name:'Boiler B-4 Inspection Report Q2', type:'pdf', icon:'icon-pdf', cat:'inspect', tags:['B-4','Inspection','2024']},
+  {name:'Valve V-22 Engineering Drawing Rev.4', type:'dwg', icon:'icon-dwg', cat:'dwg', tags:['V-22','Drawing']},
+  {name:'Heat Exchanger HE-3 Thermal Analysis', type:'xlsx', icon:'icon-xlsx', cat:'inspect', tags:['HE-3','Thermal']},
+  {name:'Turbine T-1 Operations Manual', type:'pdf', icon:'icon-pdf', cat:'manual', tags:['T-1','Manual']},
+  {name:'Reactor R-2 Safety Procedures', type:'doc', icon:'icon-doc', cat:'sop', tags:['R-2','Safety']},
+  {name:'Unit 3 Piping and Instrumentation Diagram', type:'dwg', icon:'icon-dwg', cat:'dwg', tags:['P&ID','Unit 3']},
+  {name:'Electrical Single Line Diagram 2023', type:'dwg', icon:'icon-dwg', cat:'dwg', tags:['Electrical','2023']},
+  {name:'Pump P-102 Preventive Maintenance Log', type:'pdf', icon:'icon-pdf', cat:'maint', tags:['P-102','PM']},
+  {name:'Hot Work Permit SOP', type:'doc', icon:'icon-doc', cat:'sop', tags:['Hot Work','Permit']},
+  {name:'Cooling Tower CT-1 Inspection', type:'pdf', icon:'icon-pdf', cat:'inspect', tags:['CT-1','Cooling']},
+  {name:'Compressor C-8 Vibration Analysis', type:'xlsx', icon:'icon-xlsx', cat:'inspect', tags:['C-8','Vibration']},
+  {name:'Nitrogen Purging Procedure', type:'doc', icon:'icon-doc', cat:'sop', tags:['Nitrogen','Purge']},
+  {name:'Boiler B-5 Startup Checklist', type:'xlsx', icon:'icon-xlsx', cat:'manual', tags:['B-5','Startup']},
+  {name:'Project Mercury – Phase 2 Report', type:'pdf', icon:'icon-pdf', cat:'proj', tags:['Mercury','Project']},
+  {name:'Valve V-23 Actuator Calibration', type:'pdf', icon:'icon-pdf', cat:'maint', tags:['V-23','Calibration']},
+  {name:'Emergency Shutdown Procedure ESD-001', type:'doc', icon:'icon-doc', cat:'sop', tags:['ESD','Emergency']},
+  {name:'Filter F-4 Replacement Log 2024', type:'pdf', icon:'icon-pdf', cat:'maint', tags:['F-4','Filter']},
+];
+
+function renderDocs(filter) {
+  const grid = document.getElementById('doc-grid');
+  const data = filter ? docData.filter(d => d.cat === filter) : docData;
+  grid.innerHTML = data.map(d => `
+    <div class="doc-card" onclick="nav('viewer')">
+      <div class="doc-card-icon ${d.icon}"><i class="ti ti-file"></i></div>
+      <div class="doc-card-name">${d.name}</div>
+      <div class="doc-card-meta">${d.type.toUpperCase()} · ${Math.floor(Math.random()*8+1)} pages · ${['Jul','Jun','May','Apr'][Math.floor(Math.random()*4)]} 2024</div>
+      <div class="doc-card-tags">${d.tags.map(t=>`<span class="doc-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function filterDocs(btn, cat) {
+  document.querySelectorAll('.doc-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDocs(cat);
+}
+
+const assetData = [
+  {id:'P-101',name:'Centrifugal Pump',emoji:'⚙️',status:'warn',docs:12,alerts:1},
+  {id:'P-102',name:'Transfer Pump',emoji:'⚙️',status:'ok',docs:8,alerts:0},
+  {id:'C-7',name:'Reciprocating Compressor',emoji:'🔧',status:'critical',docs:18,alerts:2},
+  {id:'C-8',name:'Centrifugal Compressor',emoji:'🔧',status:'ok',docs:9,alerts:0},
+  {id:'B-4',name:'Package Boiler',emoji:'🔥',status:'ok',docs:14,alerts:0},
+  {id:'B-5',name:'Waste Heat Boiler',emoji:'🔥',status:'ok',docs:11,alerts:0},
+  {id:'V-22',name:'Gate Valve 10"',emoji:'🔩',status:'ok',docs:6,alerts:0},
+  {id:'V-23',name:'Control Valve 4"',emoji:'🔩',status:'warn',docs:5,alerts:1},
+  {id:'HE-3',name:'Shell & Tube Exchanger',emoji:'📐',status:'warn',docs:10,alerts:1},
+  {id:'T-1',name:'Steam Turbine',emoji:'⚡',status:'ok',docs:22,alerts:0},
+  {id:'R-2',name:'CSTR Reactor',emoji:'⚗️',status:'ok',docs:19,alerts:0},
+  {id:'F-4',name:'Cartridge Filter',emoji:'🔲',status:'ok',docs:7,alerts:0},
+];
+
+function renderAssets() {
+  document.getElementById('asset-grid').innerHTML = assetData.map(a => `
+    <div class="asset-card" onclick="nav('viewer')">
+      <div class="asset-card-icon">${a.emoji}</div>
+      <div class="asset-card-id">${a.id}</div>
+      <div class="asset-card-name">${a.name}</div>
+      <div class="asset-card-stats">
+        <span class="ast-stat ok">${a.docs} docs</span>
+        ${a.alerts > 0 ? `<span class="ast-stat ${a.status === 'critical' ? 'bad' : 'warn'}">${a.alerts} alert${a.alerts > 1 ? 's' : ''}</span>` : `<span class="ast-stat ok">Healthy</span>`}
+      </div>
+    </div>`).join('');
+}
+
+const kgNodes = [
+  {x:50,y:50,label:'Pump P-101',color:'#2563eb',size:28,type:'A'},
+  {x:30,y:28,label:'MAINT LOG Q3',color:'#10b981',size:18,type:'D'},
+  {x:68,y:32,label:'SOP SEAL-007',color:'#7c3aed',size:18,type:'D'},
+  {x:18,y:52,label:'P-101 Drawing',color:'#10b981',size:16,type:'D'},
+  {x:42,y:72,label:'Failure 2022',color:'#ef4444',size:20,type:'D'},
+  {x:65,y:68,label:'Compressor C-7',color:'#f59e0b',size:26,type:'A'},
+  {x:82,y:52,label:'Vib. Analysis',color:'#10b981',size:16,type:'D'},
+  {x:78,y:78,label:'C-7 Failure Log',color:'#ef4444',size:18,type:'D'},
+  {x:50,y:22,label:'Confined Space SOP',color:'#7c3aed',size:20,type:'D'},
+  {x:22,y:72,label:'P-101 Parts',color:'#10b981',size:14,type:'D'},
+  {x:55,y:88,label:'Boiler B-4',color:'#f59e0b',size:24,type:'A'},
+  {x:38,y:88,label:'B-4 Inspection',color:'#10b981',size:16,type:'D'},
+  {x:72,y:90,label:'Water Treatment',color:'#7c3aed',size:14,type:'D'},
+  {x:12,y:36,label:'HE-3',color:'#f59e0b',size:20,type:'A'},
+  {x:8,y:18,label:'HE-3 Thermal',color:'#10b981',size:14,type:'D'},
+  {x:88,y:22,label:'Valve V-22',color:'#2563eb',size:20,type:'A'},
+  {x:95,y:38,label:'V-22 Drawing',color:'#10b981',size:14,type:'D'},
+];
+
+const kgEdges = [[0,1],[0,2],[0,3],[0,4],[4,5],[5,6],[5,7],[0,8],[5,8],[0,9],[5,10],[10,11],[10,12],[0,13],[13,14],[15,16],[0,15]];
+
+function renderGraph() {
+  const canvas = document.getElementById('kg-canvas');
+  const svg = document.getElementById('kg-svg');
+  const W = canvas.clientWidth || 700;
+  const H = canvas.clientHeight || 480;
+  canvas.querySelectorAll('.kg-node').forEach(n => n.remove());
+  const lines = kgEdges.map(([a,b]) => {
+    const na = kgNodes[a], nb = kgNodes[b];
+    const x1 = na.x/100*W, y1 = na.y/100*H, x2 = nb.x/100*W, y2 = nb.y/100*H;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1e2530" stroke-width="1.5"/>`;
+  }).join('');
+  svg.innerHTML = lines;
+  kgNodes.forEach((n, i) => {
+    const el = document.createElement('div');
+    el.className = 'kg-node';
+    el.style.left = n.x + '%';
+    el.style.top = n.y + '%';
+    el.innerHTML = `<div class="kg-dot" style="width:${n.size}px;height:${n.size}px;background:${n.color}20;border:2px solid ${n.color};color:${n.color};font-size:9px">${n.type}</div><div class="kg-label">${n.label}</div>`;
+    el.title = n.label;
+    canvas.appendChild(el);
+  });
+}
+
+function renderCharts() {
+  const qData = [142,178,196,155,221,243,198,267,289,245,301,278,321,247];
+  const uData = [5,3,8,6,4,9,7,11,6,4,8,10,7,12];
+  const days = ['M','T','W','T','F','S','S','M','T','W','T','F','S','M'];
+  const maxQ = Math.max(...qData);
+  const maxU = Math.max(...uData);
+  document.getElementById('query-chart').innerHTML = qData.map((v,i) => `
+    <div class="bar-col"><div class="bar-rect" style="height:${Math.round(v/maxQ*120)}px" title="${v} queries on ${days[i]}"></div><div class="bar-label">${days[i]}</div></div>`).join('');
+  document.getElementById('upload-chart').innerHTML = uData.map((v,i) => `
+    <div class="bar-col"><div class="bar-rect" style="height:${Math.round(v/maxU*120)}px;background:#7c3aed" title="${v} uploads on ${days[i]}"></div><div class="bar-label">${days[i]}</div></div>`).join('');
+}
+
+const aiResponses = {
+  'pump p-101': {
+    text: `**Pump P-101 — Maintenance Summary**\n\nBased on 12 indexed documents, here is the complete maintenance history for Pump P-101:\n\n**Current Status:** ⚠️ Action Required — Mechanical seal weepage detected (July 2024). Vibration elevated at 0.42 in/s RMS vs 0.18 in/s baseline.\n\n**Recent History:**\n• Jul 2024: Q3 PM — Seal weepage ~5 drops/min. Recommend replacement within 30 days.\n• Apr 2024: Normal quarterly PM — bearings lubricated, no issues.\n• Jan 2024: Impeller inspection — within spec.\n• Oct 2023: Right-side bearing replacement (corrective).\n\n**Root Cause Pattern:** Historical analysis shows seal failures correlate with elevated vibration. The Oct 2023 bearing replacement may indicate a recurring alignment issue — cross-reference with MAINT-P101-2022-FAIL for pattern confirmation.\n\n**Recommended Action:** Schedule seal replacement per SOP-MAINT-SEAL-007. Parts: CRANE-2100-316SS.`,
+    sources: ['MAINT-P101-2024-Q3', 'MAINT-P101-2022-FAIL', 'SOP-MAINT-SEAL-007', 'P-101 Eng Drawing'],
+    conf: 96
+  },
+  'confined space': {
+    text: `**Confined Space Entry — Current SOP**\n\nDocument: **SOP-CS-2024-v3** (Effective Aug 1, 2024 — pending final approval)\n\n⚠️ Note: SOP-CS-2022-v2 expires in 14 days. New version requires sign-off.\n\n**Key Requirements (v3):**\n1. Atmospheric testing: O₂ (19.5–23.5%), LEL (<10%), H₂S (<10 ppm), CO (<35 ppm)\n2. Minimum crew: 1 entrant, 1 attendant, 1 supervisor with radio\n3. Rescue plan and equipment in place before entry\n4. Permit valid: 8 hours max, site-specific conditions apply\n5. New in v3: Continuous monitoring required for all Class A spaces\n\n**Related permits:** Hot Work, Excavation, Electrical Isolation`,
+    sources: ['SOP-CS-2024-v3', 'SOP-CS-2022-v2', 'Permit System Manual'],
+    conf: 99
+  },
+  'compressor c-7': {
+    text: `**Compressor C-7 — Failure Analysis**\n\nBased on 18 documents spanning 2020–2024, three primary failure modes have been identified:\n\n**1. Bearing Failures (4 incidents, 2021–2023)**\nRoot cause: Lubrication degradation during high-load summer operation. Compressor runs at 110% nameplate during peak demand. Corrective: Quarterly bearing inspection added to PM schedule in 2023.\n\n**2. Piston Rod Seal Failures (2 incidents, 2022)**\nRoot cause: Operating at elevated discharge pressure (320 psi vs 295 psi design). Traced to downstream pressure control valve misadjustment. Corrective: Relief valve setpoint revised.\n\n**3. Vibration Exceedance (Current alert — 0.78 in/s)**\nPreliminary: Possible coupling misalignment following June 2024 rebuild. Recommend immediate alignment check per SOP-VIB-CRITICAL-001.\n\n**⚠️ Active Alert:** Vibration exceeds safety threshold. Immediate action required.`,
+    sources: ['C-7 Failure Analysis 2024', 'MAINT-C7-2023-BEARING', 'SOP-VIB-CRITICAL-001', 'C-7 Ops Manual'],
+    conf: 94
+  },
+  'boiler b-4': {
+    text: `**Boiler B-4 — Inspection Report Summary**\n\nSummary across 14 inspection documents (2021–2024):\n\n**Q2 2024 Inspection (Most Recent):**\n• All pressure relief valves tested — set pressures verified\n• Refractory condition: Good — minor spalling in zone 3, monitor only\n• Burner management system: Calibration within spec\n• Water treatment chemistry: pH 10.8, O₂ scavenger within range\n• No ASME deficiencies noted\n\n**Trending Issues (2022–2024):**\n• Zone 3 refractory degradation progressing slowly — schedule repair at next annual shutdown\n• Feedwater pump P-FW2 intermittent cavitation — 3 occurrences, root cause NPSH margin at low load\n\n**Compliance:** ASME Section I, National Board NB-23. Last CRN inspection: March 2024. Next due: March 2025.`,
+    sources: ['B-4 Inspection Q2 2024', 'B-4 Inspection Q4 2023', 'B-4 Water Treatment Log', 'ASME Compliance Record'],
+    conf: 97
+  },
+  'valve v-22': {
+    text: `**Valve V-22 — Document Registry**\n\nFound 6 documents related to Valve V-22:\n\n1. **V-22 Engineering Drawing Rev.4** (2024) — 10" gate valve, ANSI 600# flanged, A216 WCB body\n2. **V-22 Actuator Calibration Report** (Jun 2024) — electric actuator, 4–20 mA signal verified\n3. **Piping Isometric ISO-3-V22** — line routing and support details\n4. **P&ID Sheet 3-PID-045** — process context, isolation duty\n5. **MAINT-V22-2023** — annual inspection, packing replaced\n6. **Material Cert. V-22-MC** — mill certs for body and trim\n\n**Current Status:** Operational. Last maintenance: Nov 2023 (packing). Next due: Nov 2024.`,
+    sources: ['V-22 Eng Drawing Rev.4', 'V-22 Calibration Report', 'ISO-3-V22', 'P&ID Sheet 045'],
+    conf: 98
+  }
+};
+
+function getAIResponse(q) {
+  const ql = q.toLowerCase();
+  if(ql.includes('p-101') || ql.includes('pump')) return aiResponses['pump p-101'];
+  if(ql.includes('confined space') || ql.includes('sop')) return aiResponses['confined space'];
+  if(ql.includes('c-7') || ql.includes('compressor')) return aiResponses['compressor c-7'];
+  if(ql.includes('boiler') || ql.includes('b-4')) return aiResponses['boiler b-4'];
+  if(ql.includes('valve') || ql.includes('v-22')) return aiResponses['valve v-22'];
+  return {
+    text: `I searched across all 150 indexed documents for: "${q}"\n\nI found relevant information in 3 documents. Based on the knowledge base, here is a synthesized answer:\n\nThe query relates to standard industrial maintenance and operations procedures at this facility. Cross-referencing maintenance logs, SOPs, and inspection reports, no critical issues are flagged for this topic at this time.\n\nFor a more specific answer, try asking about a specific asset (e.g., "Pump P-101"), procedure type (e.g., "confined space SOP"), or equipment category.`,
+    sources: ['General Knowledge Base', 'Master Equipment List', 'Operations Overview'],
+    conf: 78
+  };
+}
+
+function renderMessage(role, content, sources, conf) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg' + (role === 'user' ? ' msg-user' : '');
+  const initials = role === 'user' ? 'EK' : 'AI';
+  const avClass = role === 'user' ? 'av-user' : 'av-ai';
+  let html = `<div class="msg-avatar ${avClass}">${initials}</div><div class="msg-bubble">`;
+  const formatted = content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>').replace(/• /g,'&bull; ');
+  html += `<div class="bubble-text">${formatted}</div>`;
+  if(sources) {
+    html += `<div class="sources-row">${sources.map(s=>`<span class="source-chip" onclick="nav('viewer')">${s}</span>`).join('')}</div>`;
+    html += `<div class="confidence-bar"><span class="conf-label">AI Confidence</span><div class="conf-track"><div class="conf-fill" style="width:${conf}%"></div></div><span class="conf-pct">${conf}%</span></div>`;
+  }
+  html += `<div class="bubble-meta">${role === 'user' ? 'You' : 'IKIP AI · ' + (sources ? sources.length + ' sources' : 'General')}</div></div>`;
+  div.innerHTML = html;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addThinking() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.id = 'thinking-msg';
+  div.innerHTML = `<div class="msg-avatar av-ai">AI</div><div class="msg-bubble"><div class="bubble-text thinking"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const q = input.value.trim();
+  if(!q) return;
+  input.value = '';
+  renderMessage('user', q);
+  addThinking();
+  setTimeout(() => {
+    const thinking = document.getElementById('thinking-msg');
+    if(thinking) thinking.remove();
+    const resp = getAIResponse(q);
+    renderMessage('ai', resp.text, resp.sources, resp.conf);
+  }, 1400 + Math.random()*800);
+}
+
+function askQuestion(q) {
+  document.getElementById('chat-input').value = q;
+  sendChat();
+}
+
+function clearChat() {
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = `<div class="msg"><div class="msg-avatar av-ai">AI</div><div class="msg-bubble"><div class="bubble-text">Conversation cleared. Ask me anything about your industrial equipment, procedures, or maintenance history.</div></div></div>`;
+}
+
+function handleKey(e) {
+  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+let uploadSimCount = 0;
+function simulateUpload() {
+  uploadSimCount++;
+  const names = ['HeatExchanger_HE3_Inspection_2024.pdf','Turbine_T1_Vibration_Log_Q3.xlsx','Safety_Procedure_LOTO_v4.docx','Compressor_C8_PM_Report.pdf'];
+  const name = names[uploadSimCount % names.length];
+  const item = document.createElement('div');
+  item.className = 'upload-item';
+  item.innerHTML = `<div class="upload-header"><div class="upload-name">${name}</div><div class="upload-size">${(Math.random()*3+0.5).toFixed(1)} MB</div><div class="upload-stage" id="stage-${uploadSimCount}">Uploading...</div></div><div class="progress-track"><div class="progress-fill" id="prog-${uploadSimCount}" style="width:0%"></div></div><div class="stages-row" id="stages-${uploadSimCount}"><span class="stage-pill st-active">Upload</span><span class="stage-pill st-pending">OCR Scan</span><span class="stage-pill st-pending">Embedding</span><span class="stage-pill st-pending">Indexing</span><span class="stage-pill st-pending">Graph Link</span></div>`;
+  document.getElementById('upload-list').prepend(item);
+  const stages = ['Uploading...','Running OCR...','Generating embeddings...','Indexing knowledge...','Linking graph...','✓ Indexed'];
+  const stageNames = ['Upload','OCR Scan','Embedding','Indexing','Graph Link'];
+  const progs = [20,40,60,80,95,100];
+  let step = 0;
+  const interval = setInterval(() => {
+    if(step >= stages.length) { clearInterval(interval); return; }
+    document.getElementById('stage-' + uploadSimCount).textContent = stages[step];
+    document.getElementById('prog-' + uploadSimCount).style.width = progs[step] + '%';
+    if(step === stages.length - 1) document.getElementById('prog-' + uploadSimCount).classList.add('done');
+    const pills = document.getElementById('stages-' + uploadSimCount).querySelectorAll('.stage-pill');
+    pills.forEach((p, i) => {
+      p.className = 'stage-pill ' + (i < step ? 'st-done' : i === step && step < stageNames.length ? 'st-active' : 'st-pending');
+    });
+    step++;
+  }, 700);
+}
+
+renderDocs();
+renderAssets();
+</script>
+</body>
+</html>
